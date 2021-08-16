@@ -1,5 +1,8 @@
 import 'dart:io';
 
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter_geocoder/geocoder.dart';
 import 'package:image_picker/image_picker.dart';
@@ -13,6 +16,7 @@ class AuthProvider extends ChangeNotifier {
   double? shopLongitude;
   late String shopAddress;
   late String placeName;
+  String error = "";
 
   Future<File> getImage() async {
     final picker = ImagePicker();
@@ -70,5 +74,54 @@ class AuthProvider extends ChangeNotifier {
     this.placeName = shopAddress.featureName!;
     notifyListeners();
     return shopAddress;
+  }
+
+  Future<UserCredential?> registerVendor(email, password) async {
+    UserCredential? userCredential;
+    try {
+      userCredential = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        this.error = 'The password provided is too weak.';
+        notifyListeners();
+      } else if (e.code == 'email-already-in-use') {
+        this.error = 'The account already exists for that email.';
+        notifyListeners();
+      }
+    } catch (e) {
+      this.error = e.toString();
+      notifyListeners();
+      print(e.toString());
+    }
+    return userCredential;
+  }
+
+  Future<void> saveVendorDataToDb(
+      {String? url,
+      String? shopName,
+      String? mobile,
+      String? description,
+      String? address,
+      String? email}) async {
+    User? user = FirebaseAuth.instance.currentUser;
+    DocumentReference _vendors =
+        FirebaseFirestore.instance.collection('vendors').doc(user!.uid);
+
+    _vendors.set({
+      'uid': user.uid,
+      'shopName': shopName,
+      'mobile': mobile,
+      'description': description,
+      'email': email,
+      'address': "${this.placeName}: ${this.shopAddress}",
+      'location': GeoPoint(this.shopLatitude!, this.shopLongitude!),
+      'shopOpen': true,
+      'rating': 0.0,
+      'totalRating': 0.0,
+      'isTopPicked': true,
+      'shopProfilePic': url,
+    });
+    return null;
   }
 }
