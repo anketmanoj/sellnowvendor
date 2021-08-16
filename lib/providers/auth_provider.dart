@@ -7,6 +7,7 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter_geocoder/geocoder.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:location/location.dart';
+import 'package:sell_now_vendor/widgets/reset_password.dart';
 
 class AuthProvider extends ChangeNotifier {
   late File image;
@@ -97,6 +98,45 @@ class AuthProvider extends ChangeNotifier {
     return userCredential;
   }
 
+  Future<void> resetPassword({String? email}) async {
+    try {
+      await FirebaseAuth.instance.sendPasswordResetEmail(email: email!);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        this.error = 'The password provided is too weak.';
+        notifyListeners();
+      } else if (e.code == 'email-already-in-use') {
+        this.error = 'The account already exists for that email.';
+        notifyListeners();
+      }
+    } catch (e) {
+      this.error = e.toString();
+      notifyListeners();
+      print(e.toString());
+    }
+  }
+
+  Future<UserCredential?> loginVendor(email, password) async {
+    UserCredential? userCredential;
+    try {
+      userCredential = await FirebaseAuth.instance
+          .signInWithEmailAndPassword(email: email, password: password);
+    } on FirebaseAuthException catch (e) {
+      if (e.code == 'weak-password') {
+        this.error = 'The password provided is too weak.';
+        notifyListeners();
+      } else if (e.code == 'email-already-in-use') {
+        this.error = 'The account already exists for that email.';
+        notifyListeners();
+      }
+    } catch (e) {
+      this.error = e.toString();
+      notifyListeners();
+      print(e.toString());
+    }
+    return userCredential;
+  }
+
   Future<void> saveVendorDataToDb(
       {String? url,
       String? shopName,
@@ -121,6 +161,7 @@ class AuthProvider extends ChangeNotifier {
       'totalRating': 0.0,
       'isTopPicked': true,
       'shopProfilePic': url,
+      'accVerified': true,
     });
     return null;
   }
