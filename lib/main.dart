@@ -2,15 +2,23 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:sell_now_vendor/screens/auth_screen.dart';
+import 'package:sell_now_vendor/providers/auth_provider.dart';
 import 'package:sell_now_vendor/screens/homeScreen.dart';
+import 'package:sell_now_vendor/screens/registerScreen.dart';
 import 'package:sell_now_vendor/screens/splashScreen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await Firebase.initializeApp();
   runApp(
-    MyApp(),
+    MultiProvider(
+      providers: [
+        ChangeNotifierProvider(
+          create: (_) => AuthProvider(),
+        ),
+      ],
+      child: MyApp(),
+    ),
   );
 }
 
@@ -30,7 +38,7 @@ class MyApp extends StatelessWidget {
       initialRoute: SplashScreen.id,
       routes: {
         SplashScreen.id: (context) => SplashScreen(),
-        AuthScreen.id: (context) => AuthScreen(),
+        RegistrationScreen.id: (context) => RegistrationScreen(),
         HomeScreen.id: (context) => HomeScreen(),
       },
     );
