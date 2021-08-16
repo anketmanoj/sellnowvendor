@@ -1,5 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:sell_now_vendor/screens/loginScreen.dart';
 import 'package:sell_now_vendor/screens/registerScreen.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -13,7 +14,7 @@ class HomeScreen extends StatelessWidget {
         child: ElevatedButton(
           onPressed: () {
             FirebaseAuth.instance.signOut();
-            Navigator.pushReplacementNamed(context, RegistrationScreen.id);
+            Navigator.pushReplacementNamed(context, LogoinScreen.id);
           },
           child: Text("Sign out"),
         ),
